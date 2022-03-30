@@ -1,16 +1,11 @@
-
 import express from 'express';
 import userRoute from './UserRoute';
-import categoryRoute from './CategoryRoute';
-import blogRoute from './BlogRoute';
-
-
+import incomeRoute from './IncomeRoute';
+import expenseRoute from './ExpenseRoute'
 const router = express.Router();
 
-
 userRoute(router);
-categoryRoute(router)
-blogRoute(router)
-
+incomeRoute(router);
+expenseRoute(router);
 
 export default router;

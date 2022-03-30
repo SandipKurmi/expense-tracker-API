@@ -1,6 +1,4 @@
-post man link login signup
-
-https://www.getpostman.com/collections/19f119ed5c60969e1c79
+https://www.getpostman.com/collections/86d77205a79cf456cc78
 
 
-commete test
+

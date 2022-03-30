@@ -2,7 +2,6 @@ import mongoose, { Schema } from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
 
 class UserModel {
-  // eslint-disable-next-line class-methods-use-this
   initSchema() {
     const schema = new Schema(
       {
@@ -17,10 +16,14 @@ class UserModel {
         password: {
           type: String,
           required: true
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
         } 
       },
       {
-        timestamps: true,
+        // timestamps: true,
       },
     );
     schema.plugin(uniqueValidator);
@@ -32,7 +35,6 @@ class UserModel {
     return mongoose.model('User');
   }
 
-  // eslint-disable-next-line class-methods-use-this
   getModel() {
     return mongoose.model('User');
   }
