@@ -39,20 +39,31 @@ class ExpenseService extends Service {
     }
     //get income
     async getexpense(exp) {
+
         try {
             const Expense = await this.model.find({ "userid": exp.userid });
-            // console.log(income)
-            var total = 0;
-            for (var i = 0; i < Expense.length; i++) {
-                total = total + Expense[i].amount;
-            }
-
+           
+            const expensesStats = await this.model.aggregate([
+                //filter
+                { $match: { amount: { $gte: 20 } } },
+                {
+                  $group: {
+                    _id: null, //group by but we want all the in one group. If you group by some fields it means your resultls will be base on that field
+                    averageExp: { $avg: "$amount" },
+                    totalExp: { $sum: "$amount" },
+                    minExp: { $min: "$amount" },
+                    maxExp: { $max: "$amount" },
+                    totalRecords: { $sum: 1 },
+                  },
+                },
+              ]);
             
             return {
                 error: false,
                 statusCode: 202,
-                TotalExpense: total,
-                data: Expense
+                allStats:expensesStats,
+                data: Expense,
+                
             };
         } catch (error) {
             return ({

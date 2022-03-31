@@ -17,8 +17,9 @@ class IncomeService extends Service {
         const data = new this.model({
             // postid:req.body.postid,
             title: income.body.title,
-            description:income.body.description,
-            amount:income.body.amount,
+            description: income.body.description,
+            amount: income.body.amount,
+            date: income.body.date,
             userid: income.userid
         })
         try {
@@ -38,21 +39,70 @@ class IncomeService extends Service {
         }
     }
     //get income
-    async getincome(incid) {
+    async getincome(inc) {
         try {
-            const income = await this.model.find({ "userid": incid.userid });
-            // console.log(income)
-            var total = 0;
-            for (var i = 0; i < income.length; i++) {
-                total = total + income[i].amount;
-            }
+
+            const income = await this.model.find({ "userid": inc.userid });
+
+            // const incomeStats = await this.model.aggregate([
+            //     //filter
+            //     { $match: { amount: { $gte: 20 } } },
+            //     {
+            //         $group: {
+            //             _id: null,
+            //             averageInc: { $avg: "$amount" },
+            //             totalInc: { $sum: "$amount" },
+            //             minInc: { $min: "$amount" },
+            //             maxInc: { $max: "$amount" },
+            //             totalRecords: { $sum: 1 },
+            //         },
+            //     },
+            // ]);
+
+            // var start = new Date();
+            // start.setUTCHours(0, 0, 0, 0);
+
+            // var end = new Date();
+            // end.setUTCHours(23, 59, 59, 999);
+            // console.log(start);
+            // console.log(end);
+
+            // let month = date;
+            // let days = new Date(2022, month, 0).getDate()
+            // const start = new Date()
+            // start.setMonth(month - 1, 1);
+            // start.setUTCHours(0,0,0)
+
+            // const end = new Date()
+            // end.setMonth(month - 1, days);
+            // end.setUTCHours(0,0,0)
+
+            var startDate = new Date("2021-08-04");
+            var endDate = new Date("2024-08-12");
+            let data = await this.model.aggregate([
+                  { $match: { date: { $gte: startDate, $lt: endDate } } },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+                          title: { $first: '$title' },
+                        averageInc: { $avg: "$amount" },
+                        totalInc: { $sum: "$amount" },
+                        minInc: { $min: "$amount" },
+                        maxInc: { $max: "$amount" },
+                        totalRecords: { $sum: 1 },
+                    },
+                },
+            ]);
+
             return {
                 error: false,
                 statusCode: 202,
-                TotalIncome: total,
+                allData: data,
+                // allState: incomeStats,
                 data: income
             };
         } catch (error) {
+            console.log(error)
             return ({
                 error: true,
                 statusCode: 500,
@@ -68,7 +118,7 @@ class IncomeService extends Service {
             let income = await this.model.findOne({ "userid": userid })
             if (income) {
                 console.log(income)
-                const updatedIncome = await this.model.updateOne({ _id: incomeid },  data );
+                const updatedIncome = await this.model.updateOne({ _id: incomeid }, data);
                 console.log(updatedIncome)
                 return {
                     error: false,

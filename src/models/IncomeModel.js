@@ -5,36 +5,40 @@ class IncomeModel {
   // eslint-disable-next-line class-methods-use-this
   initSchema() {
     const schema = new Schema(
-        {
-            title: {
-              required: [true, "Title  is required"],
-              type: String,
-            },
-            type: {
-              type: String,
-              default: "income",
-            },
-            description: {
-              required: [true, "Description  is required"],
-              type: String,
-            },
-            amount: {
-              required: [true, "Amount is required"],
-              type: Number,
-            },
-            userid: {
-              type: String,
-              required: [true, "User is required"],
-            },
-          },
-          {
-            timestamps: true,
-          }
+      {
+        title: {
+          required: [true, "Title  is required"],
+          type: String,
+        },
+        type: {
+          type: String,
+          default: "income",
+        },
+        description: {
+          required: [true, "Description  is required"],
+          type: String,
+        },
+        amount: {
+          required: [true, "Amount is required"],
+          type: Number,
+        },
+        userid: {
+          type: String,
+          required: [true, "User is required"],
+        },
+        date:{
+          type: Date,
+        }
+       
+      },
+      {
+        timestamps: true,
+      }
     );
     schema.plugin(uniqueValidator);
     mongoose.model('Income', schema);
   }
-  
+
   getInstance() {
     this.initSchema();
     return mongoose.model('Income');
