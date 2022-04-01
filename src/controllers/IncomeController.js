@@ -17,6 +17,8 @@ class IncomeController extends Controller {
         this.updateincome = this.updateincome.bind(this);
         this.deleteincome = this.deleteincome.bind(this);
         this.findbymonth = this.findbymonth.bind(this);
+        this.searchDateWise = this.searchDateWise.bind(this);
+
     }
 
     //insert income
@@ -47,15 +49,28 @@ class IncomeController extends Controller {
         const user = {
             userid: req.user.userID
         }
-        
+
         var m = req.params.m
-        let date = `${m}`
+        // let date = `${m}`
         // console.log(user)
 
-        const response = await this.service.findbymonth(user,date);
+        const response = await this.service.findbymonth(user, m);
         if (response.error) return res.status(response.statusCode).send(response);
         return res.status(response.statusCode).send(response);
-      }
+    }
+
+    //get income by month and date
+    async searchDateWise(req, res) {
+        var userid = req.user.userID
+        var m = req.params.m
+        var d = req.params.d
+        // var y = req.params.y
+        // let date = `${y}/${m}/${d}`
+        const response = await this.service.searchDateWise(userid, m, d);
+        if (response.error) return res.status(response.statusCode).send(response);
+        return res.status(response.statusCode).send(response);
+    }
+
 
     //update income
     async updateincome(req, res) {

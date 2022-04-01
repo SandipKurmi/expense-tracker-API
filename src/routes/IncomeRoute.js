@@ -8,7 +8,5 @@ export default (router) => {
     router.put(`/api/income/:id`,auth, Controller.updateincome);
     router.delete(`/api/income/:id`, auth,Controller.deleteincome);
     router.get(`/api/income/:m`, auth,Controller.findbymonth);
-    // router.get(`/api/income/:m`, auth,Controller.findbymonth);
-
-    
+    router.get(`/api/income/:m/:d`, auth, Controller.searchDateWise);
 };
