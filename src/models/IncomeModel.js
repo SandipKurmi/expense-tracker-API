@@ -12,7 +12,12 @@ class IncomeModel {
         },
         type: {
           type: String,
-          default: "income",
+        },
+        categoryId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Category',
+          required: true
+          
         },
         description: {
           required: [true, "Description  is required"],
@@ -23,8 +28,9 @@ class IncomeModel {
           type: Number,
         },
         userid: {
-          type: String,
-          required: [true, "User is required"],
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true
         },
         date:{
           type: Date,

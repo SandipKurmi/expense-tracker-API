@@ -1,8 +1,13 @@
 import Controller from './Controller';
 import Income from '../models/IncomeModel';
 import IncomeService from '../services/IncomeService';
+import Category from '../models/CategoryModel'
+import CategoryService from '../services/CategoryService';
+
 
 const incomeService = new IncomeService(new Income().getInstance());
+
+// const categoryService = new CategoryService(new Category().getModel());
 
 class IncomeController extends Controller {
     constructor(service) {
@@ -11,10 +16,13 @@ class IncomeController extends Controller {
         this.getincome = this.getincome.bind(this);
         this.updateincome = this.updateincome.bind(this);
         this.deleteincome = this.deleteincome.bind(this);
+        this.findbymonth = this.findbymonth.bind(this);
     }
 
     //insert income
     async insertincome(req, res) {
+        // let category = await categoryService.get(req.body.categoryid)
+        // console.log(category)
         const data = {
             body: req.body,
             userid: req.user.userID
@@ -33,6 +41,21 @@ class IncomeController extends Controller {
         if (response.error) return res.status(response.statusCode).send(response);
         return res.status(response.statusCode).send(response);
     }
+
+    //get income by month
+    async findbymonth(req, res) {
+        const user = {
+            userid: req.user.userID
+        }
+        
+        var m = req.params.m
+        let date = `${m}`
+        // console.log(user)
+
+        const response = await this.service.findbymonth(user,date);
+        if (response.error) return res.status(response.statusCode).send(response);
+        return res.status(response.statusCode).send(response);
+      }
 
     //update income
     async updateincome(req, res) {

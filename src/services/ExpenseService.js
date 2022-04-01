@@ -11,14 +11,15 @@ class ExpenseService extends Service {
         this.deleteexpense = this.deleteexpense.bind(this);
     }
 
-    //insert income
+    //insert expense
     async insertexpense(exp) {
-        // console.log( cat.userid)
         const Expense = new this.model({
-            // postid:req.body.postid,
             title: exp.body.title,
             description:exp.body.description,
             amount:exp.body.amount,
+            date: exp.body.date,
+            categoryId:exp.body.categoryId,
+            type:"expense",
             userid: exp.userid
         })
         try {
@@ -37,7 +38,7 @@ class ExpenseService extends Service {
             });
         }
     }
-    //get income
+    //get expense
     async getexpense(exp) {
 
         try {
@@ -48,7 +49,7 @@ class ExpenseService extends Service {
                 { $match: { amount: { $gte: 20 } } },
                 {
                   $group: {
-                    _id: null, //group by but we want all the in one group. If you group by some fields it means your resultls will be base on that field
+                    _id:  { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
                     averageExp: { $avg: "$amount" },
                     totalExp: { $sum: "$amount" },
                     minExp: { $min: "$amount" },
@@ -75,7 +76,7 @@ class ExpenseService extends Service {
         }
     }
 
-    //update income
+    //update expense
     async updateexpense(expenseid, data, userid) {
         try {
             let Expense = await this.model.findOne({ "userid": userid })
@@ -108,7 +109,7 @@ class ExpenseService extends Service {
         }
     }
 
-    //delete income
+    //delete expense
     async deleteexpense(item) {
         try {
             let Expense = await this.model.find({ "userid": item.userid })

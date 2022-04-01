@@ -9,17 +9,19 @@ class IncomeService extends Service {
         this.getincome = this.getincome.bind(this);
         this.updateincome = this.updateincome.bind(this);
         this.deleteincome = this.deleteincome.bind(this);
+        this.findbymonth = this.findbymonth.bind(this);
+
     }
 
     //insert income
-    async insertincome(income) {
-        // console.log( cat.userid)
+    async insertincome(income, category) {
         const data = new this.model({
-            // postid:req.body.postid,
             title: income.body.title,
             description: income.body.description,
             amount: income.body.amount,
             date: income.body.date,
+            categoryId: income.body.categoryId,
+            type: "income",
             userid: income.userid
         })
         try {
@@ -41,50 +43,14 @@ class IncomeService extends Service {
     //get income
     async getincome(inc) {
         try {
-
             const income = await this.model.find({ "userid": inc.userid });
 
-            // const incomeStats = await this.model.aggregate([
-            //     //filter
-            //     { $match: { amount: { $gte: 20 } } },
-            //     {
-            //         $group: {
-            //             _id: null,
-            //             averageInc: { $avg: "$amount" },
-            //             totalInc: { $sum: "$amount" },
-            //             minInc: { $min: "$amount" },
-            //             maxInc: { $max: "$amount" },
-            //             totalRecords: { $sum: 1 },
-            //         },
-            //     },
-            // ]);
-
-            // var start = new Date();
-            // start.setUTCHours(0, 0, 0, 0);
-
-            // var end = new Date();
-            // end.setUTCHours(23, 59, 59, 999);
-            // console.log(start);
-            // console.log(end);
-
-            // let month = date;
-            // let days = new Date(2022, month, 0).getDate()
-            // const start = new Date()
-            // start.setMonth(month - 1, 1);
-            // start.setUTCHours(0,0,0)
-
-            // const end = new Date()
-            // end.setMonth(month - 1, days);
-            // end.setUTCHours(0,0,0)
-
-            var startDate = new Date("2021-08-04");
-            var endDate = new Date("2024-08-12");
-            let data = await this.model.aggregate([
-                  { $match: { date: { $gte: startDate, $lt: endDate } } },
+            const incomeStats = await this.model.aggregate([
+                //filter
+                { $match: { amount: { $gte: 20 } } },
                 {
                     $group: {
                         _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
-                          title: { $first: '$title' },
                         averageInc: { $avg: "$amount" },
                         totalInc: { $sum: "$amount" },
                         minInc: { $min: "$amount" },
@@ -97,8 +63,8 @@ class IncomeService extends Service {
             return {
                 error: false,
                 statusCode: 202,
-                allData: data,
-                // allState: incomeStats,
+                // allData: data,
+                allState: incomeStats,
                 data: income
             };
         } catch (error) {
@@ -111,6 +77,107 @@ class IncomeService extends Service {
             });
         }
     }
+
+    //get income by month
+    async findbymonth(user, date) {
+        try {
+            const income = await this.model.find({ "userid": user.userid });
+            // console.log(income);
+            // console.log(income.sort(bydate))
+            let month = date;
+            // console.log(month)
+            let days = new Date(2022, month, 0).getDate()
+            // console.log(days)
+            const start = new Date()
+            start.setMonth(month - 1, 1);
+            start.setUTCHours(0, 0, 0, 0)
+            // start.setMonth(1);
+
+            const end = new Date()
+            end.setMonth(month - 1, days);
+            end.setUTCHours(0, 0, 0, 0)
+
+            // console.log(start);
+            // console.log(end);
+            const incomeStats = await this.model.aggregate([
+                //filter
+                { $match: { amount: { $gte: 20 } } },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+                        averageInc: { $avg: "$amount" },
+                        totalInc: { $sum: "$amount" },
+                        minInc: { $min: "$amount" },
+                        maxInc: { $max: "$amount" },
+                        type: { $first: '$type' },
+                        totalRecords: { $sum: 1 },
+                    },
+                },
+            ]);
+            const data = await this.model.aggregate([
+                { $match: { date: { $gte: start, $lt: end } } },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+                        
+                        type: { $first: '$type' },
+                        amount: {$sum: '$amount' },
+                        totalRecords: { $sum: 1 },
+                    },
+                },
+            ]);
+            // console.log(data)
+            var arrDays = [];
+            var arrAmount = [];
+            for (let amount of data) {
+                arrDays.push(amount._id);
+                arrAmount.push(amount.amount);
+            }
+
+            console.log(arrDays);
+            console.log(arrAmount);
+
+            let arr = [];
+            if (month < 10) {
+                month = `0${month}`
+            }
+            var dayWiseData = [];
+            for (let i = 0; i < days; i++) {
+                var day = i + 1;
+                if (day < 10) {
+                    day = `0${day}`
+                }
+                var strDate = `2022-${month}-${day}`
+                //console.log(String(strDate))
+                //console.log(arrDays.indexOf(strDate));
+                if (arrDays.indexOf(strDate) > -1) {
+                    var index = arrDays.indexOf(strDate);
+                    var dayAmount = arrAmount[index]
+                    dayWiseData.push(dayAmount);
+                } else {
+                    dayWiseData.push(0);
+                }
+            }
+            console.log(dayWiseData);
+
+            return {
+                error: false,
+                statusCode: 200,
+                data: data,
+                income: income,
+                // arr,
+            };
+        } catch (error) {
+            console.log(error);
+            return {
+                error: true,
+                statusCode: 500,
+                message: 'Not User Found',
+                errors: error,
+            };
+        }
+    }
+
 
     //update income
     async updateincome(incomeid, data, userid) {

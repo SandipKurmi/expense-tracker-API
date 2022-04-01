@@ -12,7 +12,12 @@ class ExpenseModel {
             },
             type: {
               type: String,
-              default: "expense",
+            },
+            categoryId: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: 'Category',
+              required: true
+              
             },
             description: {
               required: [true, "Description  is required"],
@@ -26,6 +31,9 @@ class ExpenseModel {
               type: String,
               required: [true, "User is required"],
             },
+            date:{
+              type: Date,
+            }
           },
           {
             timestamps: true,
