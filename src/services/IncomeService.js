@@ -11,7 +11,8 @@ class IncomeService extends Service {
         this.deleteincome = this.deleteincome.bind(this);
         this.findbymonth = this.findbymonth.bind(this);
         this.searchDateWise = this.searchDateWise.bind(this);
-
+        this.findbyYear = this.findbyYear.bind(this);
+        
     }
 
     //insert income
@@ -92,16 +93,23 @@ class IncomeService extends Service {
             for (var i = 0; i < data.length; i++) {
                 income += data[i].amount;
             }
-            console.log(income)
-        
-            return {
-                error: false,
-                statusCode: 202,
-                // incomeStats,
-                income,
-                TotalIncomeExpensePerDay: data
-                
-            };
+            if(income){
+                return {
+                    error: false,
+                    statusCode: 202,
+                    // incomeStats,
+                    income,
+                    TotalIncomeExpensePerDay: data
+                    
+                };
+            }else{
+                return {
+                    error: true,
+                    statusCode: 500,
+                    message: 'Not User Found',
+                };
+
+            }
         } catch (err) {
             console.log(err)
             return {
@@ -210,6 +218,7 @@ class IncomeService extends Service {
                 income += data[i].amount;
             }
             console.log(income)
+            
             // const incomeStats = await this.model.aggregate([
             //     //filter
             //     { $match: { amount: { $gte: 20 } } },
@@ -243,6 +252,65 @@ class IncomeService extends Service {
             };
         }
     }
+
+    //find income by years
+  async findbyYear(date){
+    // console.log(date)
+    try {
+        let year = date;
+        let final = [];
+        for (let i = 1; i <= 12; i++) {
+            let days = new Date(year, i, 0).getDate()
+            console.log(days)
+            const start = new Date()
+            start.setMonth(i - 1, 1);
+            start.setUTCHours(0, 0, 0)
+            start.setUTCFullYear(year)
+
+            const end = new Date()
+            end.setMonth(i - 1, days);
+            end.setUTCHours(0, 0, 0)
+            end.setUTCFullYear(year)
+            console.log(start)
+            console.log(end);
+
+            const data = await this.model.aggregate([
+                { $match: { date: { $gte: start, $lt: end } } },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
+                        TransactionTotal: { $sum: 1 },
+                    },
+                },
+            ]);
+            console.log(data)
+            final.push(...data);
+        }
+        console.log(final)
+console.log(data)
+        if (final.length == 0) {
+            return {
+                error: false,
+                statusCode: 200,
+                msg: `Data Not Found Of year ${year}`
+
+            };
+        } else {
+            return {
+                error: false,
+                statusCode: 200,
+                final,
+            };
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            error: true,
+            statusCode: 500,
+            message: 'Not able to get income',
+        };
+    }
+  }
 
     //update income
     async updateincome(incomeid, data, userid) {

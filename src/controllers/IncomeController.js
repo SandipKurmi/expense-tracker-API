@@ -7,7 +7,7 @@ import CategoryService from '../services/CategoryService';
 
 const incomeService = new IncomeService(new Income().getInstance());
 
-// const categoryService = new CategoryService(new Category().getModel());
+// const categoryService = new CategoryService(new Category().getModel());    
 
 class IncomeController extends Controller {
     constructor(service) {
@@ -18,6 +18,8 @@ class IncomeController extends Controller {
         this.deleteincome = this.deleteincome.bind(this);
         this.findbymonth = this.findbymonth.bind(this);
         this.searchDateWise = this.searchDateWise.bind(this);
+        this.findbyYear = this.findbyYear.bind(this);
+
 
     }
 
@@ -59,7 +61,7 @@ class IncomeController extends Controller {
         return res.status(response.statusCode).send(response);
     }
 
-    //get income by month and date
+    //get income by month and date  
     async searchDateWise(req, res) {
         var userid = req.user.userID
         var m = req.params.m
@@ -70,6 +72,17 @@ class IncomeController extends Controller {
         if (response.error) return res.status(response.statusCode).send(response);
         return res.status(response.statusCode).send(response);
     }
+
+    //get income year wise
+
+    async findbyYear(req, res) {
+        var date = req.params.y
+        // console.log(date)
+        const response = await this.service.findbyYear(date);
+        if (response.error) return res.status(response.statusCode).send(response);
+        return res.status(response.statusCode).send(response);
+    }
+
 
 
     //update income
