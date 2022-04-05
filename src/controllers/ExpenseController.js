@@ -40,7 +40,7 @@ class ExpenseController extends Controller {
      //get expense by month
      async findbymonth(req, res) {
         var m = req.params.m
-        const response = await this.service.findbymonth( m);
+        const response = await this.service.findbymonth(m);
         if (response.error) return res.status(response.statusCode).send(response);
         return res.status(response.statusCode).send(response);
     }

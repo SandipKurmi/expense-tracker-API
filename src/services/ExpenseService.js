@@ -43,7 +43,6 @@ class ExpenseService extends Service {
 
     //get expense
     async getexpense(exp) {
-
         try {
             const Expense = await this.model.find({ "userid": exp.userid });
 
@@ -79,127 +78,98 @@ class ExpenseService extends Service {
     }
 
     //get expense by month
-    async findbymonth(m) {
+    async findbymonth(date) {
         try {
-            const start = new Date();
-            start.setMonth(m - 1, 1);
-            start.setUTCHours(0, 0, 0, 0)
+            let month = date;
+            let days = new Date(2022, month, 0).getDate()
+            const data = await this.model.aggregate([
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+                        // title: { $first: '$title' },
+                        amount : { $first: '$amount' },
+                        // type: { $first: '$type' },
+                        total: { $sum: 1 }
+                    },
+                },
+            ]);
+            //empty array
+            var arrDays = [];
+            var arrAmount = [];
+            var arrTotal = [];
 
-            const data = await this.model.find({ date: start });
+            for (let amount of data) {
+                arrDays.push(amount._id);
+                arrAmount.push(amount.amount);
+                arrTotal.push(amount.total);
 
-            let income = 0;
-            for (var i = 0; i < data.length; i++) {
-                income += data[i].amount;
             }
-            // console.log(income)
-            if (income) {
-                return {
-                    error: false,
-                    statusCode: 202,
-                    income,
-                    TotalIncomeExpensePerDay: data
-
-                };
-            } else {
-                return {
-                    error: true,
-                    statusCode: 500,
-                    message: 'Not User Found',
-                };
+            // console.log(arrDays);
+            // console.log(arrAmount);
+            ///cc
+            var dayWiseData = [];
+            var dayTotalData = [];
+            if (month < 10) {
+                month = `0${month}`
             }
+            for (let i = 0; i < days; i++) {
+                var day = i + 1;
+                if (day < 10) {
+                    day = `0${day}`
+                }
+                var strDate = `2022-${month}-${day}`
+                // console.log(String(strDate))
+                // console.log(arrDays.indexOf(strDate));
+                if (arrDays.indexOf(strDate) > -1) {
+                    var index = arrDays.indexOf(strDate);
+                    var dayAmount = arrAmount[index]
+                    var dayTotal = arrTotal[index]
+                    dayWiseData.push(dayAmount);
+                    dayTotalData.push(dayTotal);
+                } else {
+                    dayTotalData.push(0)
+                    dayWiseData.push(0);
+                }
+            }
+            // console.log(dayWiseData);
+            // console.log(dayTotalData)
 
-        } catch (err) {
+            //generate empty data
+            let finaldata = [];
+            if (month < 10) {
+                month = `${month}`
+            }
+            for (let i = 0; i < days; i++) {
+                var day = i + 1;
+                if (day < 10) {
+                    day = `0${day}`
+                }
+                var strDate = `2022-${month}-${day}`
+                console.log(String(strDate))
+                let obj = {
+                    _id: strDate,
+                    TotalAmout: dayWiseData[i],
+                    TotalTranctions: dayTotalData[i]
+                }
+                finaldata.push(obj);
+            }
+            // console.log(finaldata)
+            return {
+                error: false,
+                statusCode: 200,
+                finaldata,
+            };
+        }
+        catch (err) {
             console.log(err)
             return {
                 error: true,
                 statusCode: 500,
-                message: 'Not User Found',
+                message: 'Not able to get expense',
                 errors: err,
             };
         }
 
-        //////////////////////////////////////////////////////////
-
-        // try {
-        //     const income = await this.model.find({ "userid": user.userid });
-        //     let month = date;
-        //     let days = new Date(2022, month, 0).getDate()
-        //     const start = new Date()
-        //     start.setMonth(month - 1, 1);
-        //     start.setUTCHours(0, 0, 0, 0)
-        //     // start.setMonth(1);
-
-        //     const end = new Date()
-        //     end.setMonth(month - 1, days);
-        //     end.setUTCHours(0, 0, 0, 0)
-
-        //     // const data1 = await this.model.find({ date: start });
-        //     // console.log(data1);
-
-        //     // console.log(start);
-        //     // console.log(end);
-        //     const data = await this.model.aggregate([
-        //         { $match: { date: { $gte: start, $lt: end } } },
-        //         {
-        //             $group: {
-        //                 _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
-        //                 type: { $first: '$type' },
-        //                 amount: { $sum: '$amount' },
-        //                 totalRecords: { $sum: 1 },
-        //             },
-        //         },
-        //     ]);
-        //     // console.log(data)
-        //     var arrDays = [];
-        //     var arrAmount = [];
-        //     for (let amount of data) {
-        //         arrDays.push(amount._id);
-        //         arrAmount.push(amount.amount);
-        //     }
-
-        //     console.log(arrDays);
-        //     console.log(arrAmount);
-
-        //     let arr = [];
-        //     if (month < 10) {
-        //         month = `0${month}`
-        //     }
-        //     var dayWiseData = [];
-        //     for (let i = 0; i < days; i++) {
-        //         var day = i + 1;
-        //         if (day < 10) {
-        //             day = `0${day}`
-        //         }
-        //         var strDate = `2022-${month}-${day}`
-        //         //console.log(String(strDate))
-        //         //console.log(arrDays.indexOf(strDate));
-        //         if (arrDays.indexOf(strDate) > -1) {
-        //             var index = arrDays.indexOf(strDate);
-        //             var dayAmount = arrAmount[index]
-        //             dayWiseData.push(dayAmount);
-        //         } else {
-        //             dayWiseData.push(0);
-        //         }
-        //     }
-        //     // console.log(dayWiseData);
-
-        //     return {
-        //         error: false,
-        //         statusCode: 200,
-        //         data: data,
-        //         // data1,
-        //         // income: income,
-        //         // arr,
-        //     };
-        // } catch (error) {
-        //     console.log(error);
-        //     return {
-        //         error: true,
-        //         statusCode: 500,
-        //         message: 'Not User Found',
-        //         errors: error,
-        //     };
-        // }
     }
 
     //get expense by month and date
@@ -250,149 +220,84 @@ class ExpenseService extends Service {
         }
     }
 
-    // find expense by year
+    // // find expense by year
     async findbyYear(date) {
         try {
-            const start = new Date()
-            start.setMonth(0, 1);
-            start.setUTCHours(0, 0, 0)
-            start.setUTCFullYear(date)
-
-            const end = new Date()
-            end.setMonth(11, 31);
-            end.setUTCHours(0, 0, 0)
-            end.setUTCFullYear(date)
-
-            // console.log(start, end)
-            const data = await this.model.aggregate([
-                { $match: { date: { $gte: start, $lt: end } } },
-                {
-                    $group: {
-                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
-                        title: { $first: '$title' },
-                        price: { $first: '$amount' },
-                        type: { $first: '$type' },
-                        total: { $sum: 1 }
+            let year = date;
+            let final = [];
+                const data = await this.model.aggregate([
+                    {
+                        $group: {
+                            _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
+                            TransactionTotal: { $sum: 1 },
+                        },
                     },
-                },
-            ]);
-            console.log(data)
-            console.log('year data end')
-
-            if (data.length!=0){
-                return{
-                    error: false,
-                    statusCode:200,
-                    data:data
-                    
-                }
-            }else{
-                return {
-                    error: true,
-                    statusCode: 500,
-                    message: 'this year not found',
-                };
+                ]);
+                final.push(...data);
+            // console.log(final)
+            //create empty array
+            var arrDays = [];
+            var arrPrice = [];
+            for (let price of final) {
+                arrDays.push(price._id);
+                arrPrice.push(price.TransactionTotal);
             }
-
-        } catch (error) {
-            console.log(err)
+            // console.log(arrDays);
+            // console.log(arrPrice);
+            let arr = [];
+            var dayWiseData = [];
+            for (let i = 0; i < 12; i++) {
+                var month = i + 1;
+                if (month < 10) {
+                    month = `0${month}`
+                }
+                var strDate = `${year}-${month}`
+                // console.log(String(strDate))
+                // console.log(arrDays.indexOf(strDate));
+                if (arrDays.indexOf(strDate) > -1) {
+                    var index = arrDays.indexOf(strDate);
+                    var dayPrice = arrPrice[index]
+                    dayWiseData.push(dayPrice);
+                } else {
+                    dayWiseData.push(0);
+                }
+            }
+            //generate blank data
+            let empty = [];
+            for (let i = 1; i <= 12; i++) {
+                // let days = new Date(year, i, 0).getDate()
+                const start = new Date()
+                start.setMonth(i - 1, 1);
+                start.setUTCHours(0, 0, 0)
+                start.setUTCFullYear(year)
+                if (i < 10) {
+                    i = `0${i}`
+                }
+                let date = `${start.getFullYear()}-${i} `
+                let obj = {
+                    _id: date,
+                    TransactionTotal: dayWiseData[i - 1],
+                }
+                empty.push(obj);
+            }
+            // console.log(empty)
+            //return
+            return {
+                error: false,
+                statusCode: 200,
+                msg: `Data Of year ${year}`,
+                empty
+            };
+        }
+        catch (error) {
+            console.log(error)
             return {
                 error: true,
                 statusCode: 500,
-                message: 'Not User Found',
-                errors: err,
+                message: 'Not able to get expense',
             };
-
         }
     }
-
-
-    
-    // // get expense by year
-    // async findbyYear(date) {
-    //     try {
-    //         let year = date;
-    //         let final = [];
-    //         for (let i = 1; i <= 12; i++) {
-    //             console.log(data);
-    //             let days = new Date(year, i, 0).getDate()
-    //             const start = new Date()
-    //             start.setMonth(i - 1, 1);
-    //             start.setUTCHours(0, 0, 0)
-    //             start.setUTCFullYear(year)
-
-    //             const end = new Date()
-    //             end.setMonth(i - 1, days);
-    //             end.setUTCHours(0, 0, 0)
-    //             end.setUTCFullYear(year)
-
-    //             console.log(start);
-    //             console.log(end)
-
-    //             const data = await this.model.aggregate([
-    //                 { $match: { date: { $gte: start, $lt: end } } },
-    //                 console.log(date),
-    //                 {
-    //                     $group: {
-    //                         _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
-    //                         type: { $first: '$type' },
-    //                         amount: { $sum: '$amount' },
-    //                         TransactionTotal: { $sum: 1 },
-    //                     },
-    //                 },
-    //             ]);
-    //             console.log(data);
-    //             final.push(data);
-
-    //         }
-    //         console.log(final)
-
-    //         //generate blcank data
-    //         let empty = [];
-    //         for (let i = 1; i <= 12; i++) {
-    //             // let days = new Date(year, i, 0).getDate()
-    //             const start = new Date()
-    //             start.setMonth(i - 1, 1);
-    //             start.setUTCHours(0, 0, 0)
-    //             start.setUTCFullYear(year)
-    //             if (i < 10) {
-    //                 i = `0${i}`
-    //             }
-    //             let date = `${start.getFullYear()}-${i} `
-    //             let obj = {
-    //                 _id: date,
-    //                 TransactionTotal: 0,
-    //             }
-    //             // console.log(obj)
-    //             empty.push(obj);
-
-    //         }
-    //         console.log(empty)
-    //         if (final.length == 0) {
-    //             return {
-    //                 error: false,
-    //                 statusCode: 200,
-    //                 msg: `Data Not Found Of year ${year}`,
-    //                 empty
-
-    //             };
-    //         } else {
-    //             return {
-    //                 error: false,
-    //                 statusCode: 200,
-    //                 final,
-    //             };
-    //         }
-    //     } catch (error) {
-    //         console.log(error)
-    //         return {
-    //             error: true,
-    //             statusCode: 500,
-    //             message: 'Not able to get expense',
-    //         };
-    //     }
-    // }
-
 
     //update expense
     async updateexpense(expenseid, data, userid) {

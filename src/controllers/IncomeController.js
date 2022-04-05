@@ -48,15 +48,11 @@ class IncomeController extends Controller {
 
     //get income by month
     async findbymonth(req, res) {
-        const user = {
-            userid: req.user.userID
-        }
-
         var m = req.params.m
         // let date = `${m}`
         // console.log(user)
 
-        const response = await this.service.findbymonth(user, m);
+        const response = await this.service.findbymonth( m);
         if (response.error) return res.status(response.statusCode).send(response);
         return res.status(response.statusCode).send(response);
     }
